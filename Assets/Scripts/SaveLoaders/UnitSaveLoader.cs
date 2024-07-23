@@ -41,21 +41,91 @@ namespace SaveLoaderProject
         protected override void SetupData(UnitData data, IMonoHelper monoHelper)
         {
             this.unitManager.SetupUnits(monoHelper.GetAllObjects<Unit>());
-            var allUnits = this.unitManager.GetAllUnits().ToList();
 
-            foreach (var unit in allUnits)
+            Dictionary<string, List<Unit>> unitsOnScene = new Dictionary<string, List<Unit>>();
+            HashSet<UnitData.SavedData> savedData = new HashSet<UnitData.SavedData>(data.savedData);
+
+            FillUnitsOnSceneDict(unitsOnScene);
+
+            List<UnitData.SavedData> itemsToRemove = LoadDataInExistingUnits(data, unitsOnScene);
+
+            foreach (var item in itemsToRemove)
             {
-                unitManager.DestroyUnit(unit);
+                savedData.Remove(item);
             }
 
-            foreach (var unit in data.savedData)
+            DestroyNotSavedUnits(unitsOnScene);
+
+            InstantiateSavedUnits(savedData);
+        }
+
+        private void InstantiateSavedUnits(HashSet<UnitData.SavedData> savedData)
+        {
+            if (savedData.Count > 0)
             {
-                Unit unitPrefab = GetPrefabByType(unit.type);
-                if (unitPrefab != null)
+                foreach (var unit in savedData)
                 {
-                    Quaternion rotation = Quaternion.Euler(unit.Rotation);
-                    Unit newUnit = this.unitManager.SpawnUnit(unitPrefab, unit.Position, rotation);
+                    Unit unitPrefab = GetPrefabByType(unit.type);
+                    Unit newUnit = this.unitManager.SpawnUnit(unitPrefab, unit.Position, Quaternion.Euler(unit.Rotation));
+                    newUnit.HitPoints = unit.HitPoints;
                     newUnit.name = unitPrefab.name;
+                }
+            }
+        }
+
+        private void DestroyNotSavedUnits(Dictionary<string, List<Unit>> unitsOnScene)
+        {
+            if (unitsOnScene.Count > 0)
+            {
+                foreach (var unitList in unitsOnScene.Values)
+                {
+                    foreach (var unit in unitList)
+                    {
+                        this.unitManager.DestroyUnit(unit);
+                    }
+                }
+                unitsOnScene.Clear();
+            }
+        }
+
+        private List<UnitData.SavedData> LoadDataInExistingUnits(UnitData data, Dictionary<string, List<Unit>> unitsOnScene)
+        {
+            var itemsToRemove = new List<UnitData.SavedData>();
+
+            foreach (var item in data.savedData)
+            {
+                if (unitsOnScene.Keys.Contains(item.type))
+                {
+                    var unitToUpdate = unitsOnScene[item.type][0];
+                    unitToUpdate.transform.position = item.Position;
+                    unitToUpdate.transform.rotation = Quaternion.Euler(item.Rotation);
+                    unitToUpdate.HitPoints = item.HitPoints;
+
+                    unitsOnScene[item.type].Remove(unitToUpdate);
+
+                    if (unitsOnScene[item.type].Count == 0)
+                    {
+                        unitsOnScene.Remove(item.type);
+                    }
+                    itemsToRemove.Add(item);
+                }
+
+            }
+
+            return itemsToRemove;
+        }
+
+        private void FillUnitsOnSceneDict(Dictionary<string, List<Unit>> unitsOnScene)
+        {
+            foreach (var unit in this.unitManager.GetAllUnits())
+            {
+                if (unitsOnScene.ContainsKey(unit.Type))
+                {
+                    unitsOnScene[unit.Type].Add(unit);
+                }
+                else
+                {
+                    unitsOnScene[unit.Type] = new List<Unit>() { unit };
                 }
             }
         }
