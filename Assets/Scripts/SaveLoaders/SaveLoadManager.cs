@@ -6,31 +6,50 @@ namespace SaveLoaderProject
     {
         private ISaveLoader[] saveLoaders;
         private GameRepository gameRepository;
+        private readonly Encrypter encrypter;
+        private readonly FileSaveLoader fileSaveLoader;
 
-        public SaveLoadManager(ISaveLoader[] saveLoaders, IGameRepository gameRepository)
+        public SaveLoadManager(
+            ISaveLoader[] saveLoaders, 
+            IGameRepository gameRepository,
+            Encrypter encrypter,
+            FileSaveLoader fileSaveLoader)
         {
             this.saveLoaders = saveLoaders;
             this.gameRepository = gameRepository as GameRepository;
+            this.encrypter = encrypter;
+            this.fileSaveLoader = fileSaveLoader;
         }
 
-        public void SaveGame()
+        public void SaveGame(IMonoHelper monoHelper)
         {
-            foreach (var loader in saveLoaders)
+            foreach (var saveLoader in saveLoaders)
             {
-                loader.SaveGame();
+                saveLoader.SaveGame(this.gameRepository, monoHelper);
             }
 
-            this.gameRepository.SaveState();
+            string savedData = this.gameRepository.SaveState();
+            string encryptedData = this.encrypter.EncryptDecrypt(savedData);
+            this.fileSaveLoader.SaveToFile(encryptedData);        }
 
-        }
-
-        public void LoadGame()
+        public void LoadGame(IMonoHelper monoHelper)
         {
-            this.gameRepository.LoadState();
-            
-            foreach(var loader in saveLoaders)
+            string savedData = this.fileSaveLoader.LoadFromFile();
+            string decryptedData = this.encrypter.EncryptDecrypt(savedData);
+            if (!string.IsNullOrEmpty(decryptedData))
             {
-                loader.LoadGame();
+                
+                this.gameRepository.LoadState(decryptedData);    
+                foreach(var loader in saveLoaders)
+                {
+                    loader.LoadGame(this.gameRepository, monoHelper);
+                    
+                }
+                Debug.Log("GameState loaded successfully");
+            }
+            else
+            {
+                Debug.Log("Loading failed. File is not found or empty");
             }
 
         }

@@ -1,29 +1,28 @@
-﻿using System;
-using System.Collections;
-using UnityEngine;
+﻿
 
 namespace SaveLoaderProject
 {
     public abstract class SaveLoader<TData>: ISaveLoader
     {
-        public void LoadGame(IGameRepository gameRepository)
+        public void LoadGame(IGameRepository gameRepository, IMonoHelper monoHelper)
         {
             if(gameRepository.TryGetData(out TData data))
             {
-                SetupData(data);
+                SetupData(data, monoHelper);
             }
         }
 
 
-        public void SaveGame(IGameRepository gameRepository)
+        public void SaveGame(IGameRepository gameRepository, IMonoHelper monoHelper)
         {
-            TData data = ConvertToData();
+            TData data = ConvertToData(monoHelper);
             gameRepository.SetData(data);
-            
         }
 
-        protected abstract TData ConvertToData();
-        protected abstract void SetupData(TData data);
+        protected abstract TData ConvertToData(IMonoHelper monoHelper);
+        protected abstract void SetupData(TData data, IMonoHelper monoHelper);
       
     }
+
+
 }

@@ -1,13 +1,10 @@
 ﻿using Newtonsoft.Json;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace SaveLoaderProject
 {
     public class GameRepository : IGameRepository
     {
-        private const string repoName = "GAME_REPOSITORY";
         private Dictionary<string, string> gameState = new Dictionary<string, string>();
       
 
@@ -39,26 +36,22 @@ namespace SaveLoaderProject
                 return true;
             }
             else
-            {
-                
+            {    
                 data = default;
                 return false;
             }
         }
 
-        public void SaveState()
+        public string SaveState()
         {
             var gameStateJson = JsonConvert.SerializeObject(gameState);
-            PlayerPrefs.SetString(repoName, gameStateJson);
+
+            return gameStateJson;
         }
 
-        public void LoadState()
+        public void LoadState(string data)
         {
-            if (PlayerPrefs.HasKey(repoName))
-            {
-                string savedState = PlayerPrefs.GetString(repoName);
-                this.gameState = JsonConvert.DeserializeObject<Dictionary<string, string>>(savedState);
-            }
+            this.gameState = JsonConvert.DeserializeObject<Dictionary<string, string>>(data);
         }
     }
 }

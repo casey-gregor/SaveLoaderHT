@@ -1,37 +1,20 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 namespace SaveLoaderProject
 {
-    public class ResourceSaveLoader : ISaveLoader
+    public class ResourceSaveLoader : SaveLoader<ResourceData>
     {
         private ResourceService resourceService;
-        private IGameRepository gameRepository;
 
-        public ResourceSaveLoader(ResourceService resourceService, IGameRepository gameRepository)
+        public ResourceSaveLoader(ResourceService resourceService)
         {
             this.resourceService = resourceService;
-            this.gameRepository = gameRepository;
         }
 
-        public void LoadGame()
+        protected override ResourceData ConvertToData(IMonoHelper helper)
         {
-            Dictionary<string, Resource> currentResources = resourceService.GetResources().ToDictionary(resource => resource.ID);
-            if(this.gameRepository.TryGetData(out ResourceData data))
-            {
-                foreach(var savedResource in data.savedData)
-                {
-                    if (currentResources.ContainsKey(savedResource.ID))
-                    {
-                        currentResources[savedResource.ID].Amount = savedResource.Amount;
-                    }
-                }
-            }
-        }
-
-        public void SaveGame()
-        {
+            this.resourceService.SetResources(helper.GetAllObjects<Resource>());
             IEnumerable<Resource> resources = this.resourceService.GetResources();
             ResourceData data = new ResourceData();
 
@@ -40,7 +23,20 @@ namespace SaveLoaderProject
                 data.AddResourceData(resource);
             }
 
-            this.gameRepository.SetData(data);
+            return data;
+        }
+
+        protected override void SetupData(ResourceData data, IMonoHelper helper)
+        {
+            this.resourceService.SetResources(helper.GetAllObjects<Resource>());
+            Dictionary<string, Resource> currentResources = resourceService.GetResources().ToDictionary(resource => resource.ID);
+            foreach (var savedResource in data.savedData)
+            {
+                if (currentResources.ContainsKey(savedResource.ID))
+                {
+                    currentResources[savedResource.ID].Amount = savedResource.Amount;
+                }
+            }
         }
     }
 }

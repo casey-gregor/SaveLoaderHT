@@ -1,11 +1,11 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace SaveLoaderProject
 {
     public class UnitData
     {
+        public HashSet<SavedData> savedData;
         public class SavedData
         {
             public string type;
@@ -15,14 +15,10 @@ namespace SaveLoaderProject
 
         }
 
-        public HashSet<SavedData> savedData;
-        //public string UnitType { get; private set; }
-        //public Dictionary<string, HashSet<SavedData>> unitsDict { get; private set; }
 
         public UnitData()
         {
             this.savedData = new HashSet<SavedData>();
-            //this.unitsDict = new Dictionary<string, HashSet<SavedData>>();
         }
 
         public void AddUnitData(Unit unit)

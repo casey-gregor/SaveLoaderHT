@@ -4,8 +4,9 @@ namespace SaveLoaderProject
 {
     public interface ISaveLoader
     {
-        void SaveGame(IGameRepository gameRepository);
-        void LoadGame(IGameRepository gameRepository);
+        void SaveGame(IGameRepository gameRepository, IMonoHelper monoHelper);
+        void LoadGame(IGameRepository gameRepository, IMonoHelper monoHelper);
        
     }
+
 }

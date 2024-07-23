@@ -14,6 +14,8 @@ namespace SaveLoaderProject
             Container.Bind<IGameRepository>().To<GameRepository>().AsSingle().NonLazy();
             Container.Bind<ISaveLoader>().To<UnitSaveLoader>().AsSingle().WithArguments(unitsContainer).NonLazy();
             Container.Bind<ISaveLoader>().To<ResourceSaveLoader>().AsSingle().NonLazy();
+            Container.Bind<Encrypter>().AsSingle().NonLazy();
+            Container.Bind<FileSaveLoader>().AsSingle().NonLazy();
             Container.Bind<SaveLoadManager>().AsSingle().NonLazy();
         }
     }

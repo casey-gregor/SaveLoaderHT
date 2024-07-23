@@ -1,7 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using UnityEditor;
 using UnityEngine;
 
 namespace SaveLoaderProject
@@ -10,23 +8,25 @@ namespace SaveLoaderProject
     {
         private Transform unitsContainer;
         private UnitManager unitManager;
-        private IGameRepository gameRepository;
         private PrefabInitializer prefabInitializer;
 
-        public UnitSaveLoader(Transform unitsContainer, UnitManager unitManager, IGameRepository gameRepository,
-            PrefabInitializer prefabInitializer)
+        public UnitSaveLoader(
+            Transform unitsContainer, 
+            UnitManager unitManager,
+            PrefabInitializer prefabInitializer
+            )
         {
             this.unitsContainer = unitsContainer;
             this.unitManager = unitManager;
             this.unitManager.SetContainer(this.unitsContainer);
-
-            this.gameRepository = gameRepository;
             this.prefabInitializer = prefabInitializer;
         }
        
 
-        protected override UnitData ConvertToData()
+        protected override UnitData ConvertToData(IMonoHelper monoHelper)
         {
+
+            this.unitManager.SetupUnits(monoHelper.GetAllObjects<Unit>());
             IEnumerable<Unit> allUnits = this.unitManager.GetAllUnits();
             UnitData unitData = new UnitData();
 
@@ -38,8 +38,9 @@ namespace SaveLoaderProject
             return unitData;
         }
 
-        protected override void SetupData(UnitData data)
+        protected override void SetupData(UnitData data, IMonoHelper monoHelper)
         {
+            this.unitManager.SetupUnits(monoHelper.GetAllObjects<Unit>());
             var allUnits = this.unitManager.GetAllUnits().ToList();
 
             foreach (var unit in allUnits)
